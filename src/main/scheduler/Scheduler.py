@@ -2,8 +2,7 @@ from model import Caregiver, Patient, Reservation, Vaccine
 from util.Util import Util
 from util import services
 import pymssql
-import datetime
-
+from datetime import datetime
 
 '''
 objects to keep track of the currently logged-in user
@@ -33,11 +32,11 @@ def create_patient(tokens):
     hash = Util.generate_hash(password, salt)
 
     # create the patient
-    caregiver = Patient(username, salt=salt, hash=hash)
+    patient = Patient(username, salt=salt, hash=hash)
 
     # save to patient information to our database
     try:
-        caregiver.save_to_db()
+        patient.save_to_db()
     except pymssql.Error as e:
         print("Failed to create user.")
         print("Db-Error:", e)
@@ -184,13 +183,9 @@ def upload_availability(tokens):
         return
 
     date = tokens[1]
-    # assume input is hyphenated in the format mm-dd-yyyy
-    date_tokens = date.split("-")
-    month = int(date_tokens[0])
-    day = int(date_tokens[1])
-    year = int(date_tokens[2])
     try:
-        d = datetime.datetime(year, month, day)
+        # assume input is hyphenated in the format mm-dd-yyyy
+        d = datetime.strptime(date, "%m-%d-%Y")
         current_caregiver.upload_availability(d)
     except pymssql.Error as e:
         print("Upload Availability Failed")
