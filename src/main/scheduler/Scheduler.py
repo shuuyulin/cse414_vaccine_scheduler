@@ -1,8 +1,6 @@
-from model.Vaccine import Vaccine
-from model.Caregiver import Caregiver
-from model.Patient import Patient
+from model import Caregiver, Patient, Reservation, Vaccine
 from util.Util import Util
-from db.ConnectionManager import ConnectionManager
+from util import services
 import pymssql
 import datetime
 
@@ -27,7 +25,7 @@ def create_patient(tokens):
     username = tokens[1]
     password = tokens[2]
     # check 2: check if the username has been taken already
-    if username_exists_patient(username):
+    if services.username_exists_patient(username):
         print("Username taken, try again!")
         return
 
@@ -61,7 +59,7 @@ def create_caregiver(tokens):
     username = tokens[1]
     password = tokens[2]
     # check 2: check if the username has been taken already
-    if username_exists_caregiver(username):
+    if services.username_exists_caregiver(username):
         print("Username taken, try again!")
         return
 
@@ -84,50 +82,6 @@ def create_caregiver(tokens):
         return
     print("Created user ", username)
 
-
-def username_exists_caregiver(username):
-    cm = ConnectionManager()
-    conn = cm.create_connection()
-
-    select_username = "SELECT * FROM Caregivers WHERE Username = %s"
-    try:
-        cursor = conn.cursor(as_dict=True)
-        cursor.execute(select_username, username)
-        #  returns false if the cursor is not before the first record or if there are no rows in the ResultSet.
-        for row in cursor:
-            return row['Username'] is not None
-    except pymssql.Error as e:
-        print("Error occurred when checking username")
-        print("Db-Error:", e)
-        quit()
-    except Exception as e:
-        print("Error occurred when checking username")
-        print("Error:", e)
-    finally:
-        cm.close_connection()
-    return False
-
-def username_exists_patient(username):
-    cm = ConnectionManager()
-    conn = cm.create_connection()
-
-    select_username = "SELECT * FROM Patients WHERE Username = %s"
-    try:
-        cursor = conn.cursor(as_dict=True)
-        cursor.execute(select_username, username)
-        #  returns false if the cursor is not before the first record or if there are no rows in the ResultSet.
-        for row in cursor:
-            return row['Username'] is not None
-    except pymssql.Error as e:
-        print("Error occurred when checking username")
-        print("Db-Error:", e)
-        quit()
-    except Exception as e:
-        print("Error occurred when checking username")
-        print("Error:", e)
-    finally:
-        cm.close_connection()
-    return False
 
 def login_patient(tokens):
     
