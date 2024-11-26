@@ -1,3 +1,4 @@
+
 CREATE TABLE Caregivers
 (
     Username varchar(255),
@@ -27,13 +28,13 @@ CREATE TABLE Patients
     Hash BINARY (16),
     PRIMARY KEY (Username)
 );
-
 CREATE TABLE Reservations
 (
-    Id int,
-    Time date REFERENCES Availabilities,
-    Cusername varchar(255) REFERENCES Availabilities (Username),
-    Pusername varchar(255) REFERENCES Patients (Unsername),
-    Vname varchar(255) REFERENCES Vaccinies (name),
-    PRIMARY KEY (Id)
+    Id int IDENTITY(1, 1) NOT NULL PRIMARY KEY,
+    Time date,
+    Cusername varchar(255),
+    Pusername varchar(255) REFERENCES Patients (Username),
+    Vname varchar(255) REFERENCES Vaccines (Name),
+    CONSTRAINT cargivermatch FOREIGN KEY (Time, Cusername) references Availabilities (Time, Username),
+    -- FOREIGN KEY (Time, Cusername) REFERENCES Availabilities (Time, Username),
 );

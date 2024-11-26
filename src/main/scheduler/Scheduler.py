@@ -156,17 +156,94 @@ def login_caregiver(tokens):
 
 
 def search_caregiver_schedule(tokens):
-    """
-    TODO: Part 2
-    """
-    pass
+
+    #  search_caregiver_schedule <date>
+    #  check 1: check if the current logged-in user is a caregiver
+    if current_caregiver is None and current_patient is None:
+        print("Please login first!")
+        return
+    
+    # check 2: the length for tokens need to be exactly 2 to include all information (with the operation name)
+    if len(tokens) != 2:
+        print("Please try again!")
+        return
+    date = tokens[1]
+    
+    try:
+        # assume input is hyphenated in the format mm-dd-yyyy
+        d = datetime.strptime(date, "%m-%d-%Y")
+        caregiverlist = services.search_caregiver_schedule(d)
+        doseslist = services.search_doses(d)
+        for row in [*caregiverlist, *doseslist]:
+            for cell in row:
+                print(cell, end=' ')
+            print()
+    except pymssql.Error as e:
+        print("Search caregiver schedule Failed")
+        print("Db-Error:", e)
+        quit()
+    except ValueError:
+        print("Please enter a valid date!")
+        return
+    except Exception as e:
+        print("Error occurred when searching caregiver schedule")
+        print("Error:", e)
+        return
 
 
 def reserve(tokens):
-    """
-    TODO: Part 2
-    """
-    pass
+    #  reserve <date> <vaccine>
+    #  check 1: check if the current logged-in user is a patient
+    if current_caregiver:
+        print("Please login as patient first!")
+        return
+    if current_patient is None:
+        print("Please login first!")
+        return
+    if len(tokens) != 3:
+        print("Please try again.")
+        return
+    
+    date = tokens[1]
+    vaccine = tokens[2]
+    try:
+        d = datetime.strptime(date, "%m-%d-%Y")
+    except:
+        print("Please enter a valid date!")
+        return
+    try:
+        # check 2: check if any caregiver is avaliable on the date
+        caregiverlist = services.search_caregiver_schedule(d)
+        if not caregiverlist:
+            print("No caregiver is available")
+            return
+        # check 3: check if the vaccine has enogh stock
+        vaccinelist = services.search_doses(d)
+        if not vaccinelist:
+            print("Not enough available doses")
+            return
+    except pymssql.Error as e:
+        print("Researving Failed")
+        print("Db-Error:", e)
+        quit()
+    except:
+        print("Please try again")
+        print("Error:", e)
+        return
+    try:
+        # reserve
+        cargiver = caregiverlist[0][0]
+        # create reservation
+        reservation = Reservation(time=date,
+                                  cusername=cargiver,
+                                  pusername=current_patient.get_username(),
+                                  vname=vaccine)
+        reservation.save_to_db()
+        print(f'Appointment ID {reservation.get_id()}, Caregiver username {cargiver}')
+    except Exception as e:
+        print("Please try again")
+        print("Error:", e)
+        return
 
 
 def upload_availability(tokens):
@@ -265,17 +342,39 @@ def add_doses(tokens):
 
 
 def show_appointments(tokens):
-    '''
-    TODO: Part 2
-    '''
-    pass
+    # show_appointments
+    # check 1: check the current logged-in user
+    if current_patient is None and current_caregiver is None:
+        print("Please login first!")
+        return
+    current_login = current_patient or current_caregiver
+    try:
+        appointments = current_login.show_appointments()
+        if appointments is None:
+            return
+        for row in appointments:
+            for cell in row:
+                print(cell, end=' ')
+            print()
+        
+    except Exception as e:
+        print("Error occurred when showing appointment")
+        print('Please try again')
+        print("Error:", e)
+        return
+
 
 
 def logout(tokens):
-    """
-    TODO: Part 2
-    """
-    pass
+    # logout
+    global current_caregiver
+    global current_patient
+    if current_patient is None and current_caregiver is None:
+        print("Please login first!")
+        return
+    current_caregiver = current_patient = None
+    print('Successfully logged out')
+    
 
 
 def start():
