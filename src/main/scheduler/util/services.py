@@ -86,7 +86,7 @@ def insert_reservation(*args) -> int:
     return result.lastrowid if hasattr(result, 'lastrowid') else None
 
 def search_caregiver_schedule(date: datetime) -> list[list]:
-    result = execute_sql_command(search_caregiver_details, (date,), fetch=True)
+    result = execute_sql_command(search_caregiver_details, (date, date), fetch=True)
     return list(result)
 
 def search_doses(date: datetime) -> list[list]:

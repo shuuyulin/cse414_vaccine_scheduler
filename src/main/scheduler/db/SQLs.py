@@ -10,6 +10,7 @@ get_patient_details = "SELECT Salt, Hash FROM Patients WHERE Username = %s"
 
 search_caregiver_details = \
 "\
+(\
     SELECT\
         C.Username\
     FROM\
@@ -18,8 +19,18 @@ search_caregiver_details = \
     WHERE\
         C.Username = A.Username AND\
         A.Time = %s\
-    ORDER BY\
-        C.Username\
+)\
+EXCEPT\
+(\
+    SELECT\
+        R.Cusername\
+    FROM\
+        Reservations AS R\
+    WHERE\
+        R.Time = %s\
+)\
+ORDER BY\
+    C.Username;\
 "
 
 search_doses_details = "SELECT * FROM Vaccines"
